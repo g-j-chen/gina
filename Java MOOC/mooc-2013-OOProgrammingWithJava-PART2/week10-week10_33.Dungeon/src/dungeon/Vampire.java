@@ -60,7 +60,7 @@ public class Vampire {
                     y--;
                 }   break;
             case 1:
-                if(y < height) {
+                if(y < height - 1) {
                     y++;
                 }   break;
             case 2:
@@ -68,9 +68,11 @@ public class Vampire {
                     x--;
                 }   break;
             case 3:
-                if(x < length) {
+                if(x < length - 1) {
                     x++;
                 }   break;
+            default:
+                break;
         }
     }
     
