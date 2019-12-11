@@ -115,6 +115,7 @@ public class Dungeon {
             }
             if(checkOverlap()) {
                 vampires = positionsAtStartOfTurn;
+                continue;
             }
             break;
         }
