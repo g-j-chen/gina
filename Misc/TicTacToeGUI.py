@@ -98,7 +98,6 @@ class TicTacToe(tk.Tk):
 		self.player *= -1
 		if self.aiPlayer:
 			if self.player == -1:
-				self.message['text'] = 'Computer making its move.'
 				self.aiMove()
 				checkWin = self.checkWin()
 				if checkWin != 0:
@@ -125,6 +124,9 @@ class TicTacToe(tk.Tk):
 		self.button_7['text'] = ' '
 		self.button_8['text'] = ' '
 		self.message['text'] = ' '
+		self.numMoves = 0
+		self.player = 1
+		self.aiPlayer = False
 
 	def setAI(self):
 		self.aiPlayer = True
