@@ -1,0 +1,78 @@
+body {
+	background-color: #AEB6BF;
+	font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+}
+
+#container {
+	background-color: #D6DBDF;
+	width: 1600px;
+	margin-left: auto;
+	margin-right: auto;
+
+}
+
+#header {
+	text-align: center;
+	padding: 10px;
+}
+
+h1, h3 {
+	margin: 0;
+}
+
+#content {
+	padding: 10px;
+	height: 500px;
+	display: table-cell;
+	vertical-align: top;
+}
+
+#players {
+	width: 760px;
+	float: left;
+	padding-right: 10px;
+	padding-left: 10px;
+}
+
+#players ul {
+	list-style-type: none;
+	padding: 0;
+}
+
+#loot {
+	width: 760px;
+	float: right;
+	padding-right: 10px;
+	padding-left: 10px;
+}
+
+#results {
+	clear: both;
+	padding: 10px;
+	height: 500px;
+}
+
+ul {
+	list-style: none;
+	padding-left: 0;
+}
+
+#playerNames, #lootNames {
+	font-size: 14px;
+	font-weight: normal;
+	resize: none;
+	overflow-y: scroll;
+}
+
+.playerButtonGroup button, .lootButtonGroup button, .splitHolder button {
+	cursor: pointer;
+}
+
+.splitHolder {
+	padding: 20px;
+}
+
+.content .splitHolder {
+	position: absolute;
+	bottom: 0;
+}
