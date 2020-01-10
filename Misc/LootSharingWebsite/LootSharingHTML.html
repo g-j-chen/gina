@@ -18,46 +18,43 @@
 					<p>Party members partaking in loot
 					</p>
 					<form>
-						<textarea id="playerNames" rows="20" cols="85" style="max-height: 100px;min-height: 100px; resize: none"></textarea>
+						<textarea id="playerNames" rows="20" cols="85" style="max-height: 100px; min-height: 100px; resize: none" placeholder="Separate names by commas"></textarea>
 						<div class="playerButtonGroup">
-							<button id="addPlayers">Add to list</button>
-							<button id="playerReset">Reset</button>
+							<button id="addPlayers" type="button">Add to list</button>
+							<button id="playerClear" type="button">Clear</button>
 						</div>
 					</form>
-					<ul id="playerList">
-
-					</ul>
 				</div>
 
 				<div id="loot">
 					<p>Hard earned loot
 					</p>
 					<form>
-						<textarea id="lootNames" rows="20" cols="85" style="max-height: 100px;min-height: 100px; resize: none"></textarea>
+						<textarea id="lootNames" rows="20" cols="85" style="max-height: 100px; min-height: 100px; resize: none" placeholder="Separate items by commas"></textarea>
 						<div class="lootButtonGroup">
-							<button id="addLoot">Add to list</button>
-							<button id="lootReset">Reset</button>
+							<button id="addLoot" type="button">Add to list</button>
+							<button id="lootClear" type="button">Clear</button>
 						</div>
 					</form>
-					<ul id="lootList">
-					
-					</ul>
 				</div>
 			</div>
 
 			<div class="splitHolder" style="vertical-align: bottom">
-				<button id="split">Split!</button>
+				<button id="split" type="button">Split!</button>
 			</div>
 
 			<hr />
 
 			<div id="results">
 				<h3>Result</h3>
+				<ul id="resultList">
+					
+				</ul>
 			</div>
 		</div>
-
-		<script type="text/javascript">
-			
-		</script>
 	</body>
+	
+	<footer>
+		<script src="LootSharingJS.js"></script>
+	</footer>
 </html>

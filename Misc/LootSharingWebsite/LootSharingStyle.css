@@ -22,7 +22,7 @@ h1, h3 {
 
 #content {
 	padding: 10px;
-	height: 500px;
+	height: 200px;
 	display: table-cell;
 	vertical-align: top;
 }
@@ -50,11 +50,6 @@ h1, h3 {
 	clear: both;
 	padding: 10px;
 	height: 500px;
-}
-
-ul {
-	list-style: none;
-	padding-left: 0;
 }
 
 #playerNames, #lootNames {
