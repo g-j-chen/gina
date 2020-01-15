@@ -1,36 +1,34 @@
-var playerString;
-var lootString;
+var playerString = "";
+var lootString = "";
 var playerList;
 var lootList;
 var numPlayers;
 var allocatedLootList = [];
 
-
-document.getElementById("addPlayers").onclick = function() {
-	playerString = document.getElementById("playerNames").value;
-	console.log(playerString);
-}
-
-
-document.getElementById("addLoot").onclick = function() {
-	lootString = document.getElementById("lootNames").value;
-	console.log(lootString);
-}
-
-
 document.getElementById("playerClear").onclick = function() {
 	document.getElementById("playerNames").value = "";
 	playerString = "";
+	playerList = [];
+	allocatedLootList = [];
 }
 
 
 document.getElementById("lootClear").onclick = function() {
 	document.getElementById("lootNames").value = "";
 	lootString = "";
+	lootList = [];
+	allocatedLootList = [];
+}
+
+document.getElementById("split").onclick = function() {
+	if (document.getElementById("resultList").getElementsByTagName("li").length === 0) {
+		lootShare();
+	}
 }
 
 
 function lootShare() {
+	playerString = document.getElementById("playerNames").value;
 	if (playerString === "") {
 		alert("No one is getting any loot :(");
 	} else {
@@ -40,7 +38,8 @@ function lootShare() {
 			playerList[i] = playerList[i].trim();
 		}
 	}
-
+	// Test: 8gp 5sp, 100gp gems x5, gold ring with black flying snake symbol 25gp, 4pp 13gp, 35gp, 12gp 55sp 87cp, silver salt and pepper shakers set 25gp, holy symbol of sylvanus 25gp, 12sp
+	lootString = document.getElementById("lootNames").value;
 	if (lootString === "") {
 		alert("There's no loot!");
 	} else {
@@ -64,13 +63,24 @@ function lootShare() {
 	console.log("sorted loot items:");
 	console.log(sortedLootItems);
 
+	for (var i = 0; i < numPlayers; i++) {
+		var v = [];
+		const c = {total: 0, list: v};
+		allocatedLootList.push(c);
+	}
+
 	allocateLoot(sortedLootItems);
+	console.log(allocatedLootList);
 	allocateGoldAndGemstones(goldAndGemstones);
+	
+	condenseLoot();
+	console.log(allocatedLootList);
+	showAllocatedLoot(shuffledPlayers);
 }
 
 
 function separateLoot(array) {
-	var goldAndGemstones = Array(6).fill(0); // ind 0: pp, 1: gp, 2: ep, 3: sp, 4:cp, 5: gemstones
+	var goldAndGemstones = Array(6).fill(0); // ind 0: pp, 1: gemstones, 2: gp, 3: ep, 4: sp, 5: cp
 	var lootItemArray = [];
 
 	for (var i = 0; i < array.length; i++) {
@@ -93,8 +103,8 @@ function separateLoot(array) {
 		}
 
 		if (isGold) {
-			for (var j = 0; j < len; j++) {
-				var s = itemStringArray[j];
+			for (var k = 0; k < len; k++) {
+				var s = itemStringArray[k];
 				var value = parseInt(s.replace(/[^0-9]/g, ""), 10);
 				var type = s.substring(s.length - 2, s.length);
 				var ind;
@@ -103,16 +113,16 @@ function separateLoot(array) {
 						ind = 0;
 						break;
 					case "gp":
-						ind = 1;
-						break;
-					case "ep":
 						ind = 2;
 						break;
-					case "sp":
+					case "ep":
 						ind = 3;
 						break;
-					case "cp":
+					case "sp":
 						ind = 4;
+						break;
+					case "cp":
+						ind = 5;
 						break;
 					default:
 						break;
@@ -125,9 +135,9 @@ function separateLoot(array) {
 		if (!isGold) {
 			var lootItem = "";
 			var valueInGold = 0;
-			var amount = 1;
-			for (var j = 0; j < len; j++) {
-				var s = itemStringArray[j];
+			var quantity = 1;
+			for (var l = 0; l < len; l++) {
+				var s = itemStringArray[l];
 				if (s.match(/^[a-zA-Z]+$/)) {
 					lootItem += s + " ";
 				} else if (s.includes("pp") || s.includes("gp") || s.includes("ep") || s.includes("sp") || s.includes("cp")) {
@@ -135,13 +145,19 @@ function separateLoot(array) {
 					var type = s.substring(s.length - 2, s.length);
 					valueInGold = getValueInGold(temp, type);
 				} else if (s.match(/x{1}[0-9]+/)) {
-					amount = parseInt(s.replace(/[^0-9]/g, ""), 10);
+					quantity = parseInt(s.replace(/[^0-9]/g, ""), 10);
 				}
 			}
-			var itemTuple = Object.freeze({name: lootItem, value: valueInGold, actual: temp.toString() + type});
-			for (var k = 0; k < amount; k++) {
+			var itemTuple = {name: lootItem, value: valueInGold, actual: temp.toString() + type, amount: 1};
+			if (quantity === 1) {
 				lootItemArray.push(itemTuple);
+			} else {
+				for (var n = 1; n <= quantity; n++) {
+					var newItemTuple = {name: lootItem, value: valueInGold, actual: temp.toString() + type, amount: 1};
+					lootItemArray.push(newItemTuple);
+				}
 			}
+			
 		}
 	}
 	return [goldAndGemstones, lootItemArray];
@@ -149,35 +165,140 @@ function separateLoot(array) {
 
 
 function allocateLoot(array) {
-	for (var i = 0; i < numPlayers; i++) {
-		var v = [];
-		const c = {total: 0, list: v};
-		allocatedLootList.push(c);
-	}
-
 	for (var i = 0; i < array.length; i++) {
 		var item = array[i];
 		var leastWorthInd = getLeastWorth(allocatedLootList);
 		allocatedLootList[leastWorthInd].total += item.value;
-		allocatedLootList[leastWorthInd].list.push(item);
+		var l = allocatedLootList[leastWorthInd].list;
+		var same = false;
+		if (l.length > 0) {
+			var prevItem = l.pop();
+			if (prevItem.name === item.name) {
+				let toAdd = prevItem.amount;
+				item.amount = toAdd + 1;
+				same = true;
+			}
+		}
+		if (!same) {
+			l.push(prevItem);
+		}
+		l.push(item);
+		allocatedLootList[leastWorthInd].list = l;
 	}
-	console.log("allocated loot list: ");
-	console.log(allocatedLootList);
 }
 
 
 function allocateGoldAndGemstones(array) {
-	
+	for (var i = 0; i < array.length; i++) {
+		var amountLeft = array[i];
+		var type = getTypeFromIndex(i);
+		while (amountLeft > 0) {
+			var leastWorthInd = getLeastWorth(allocatedLootList);
+			var leastWorthArray = Array(numPlayers).fill(0);
+			var count = 0;
+			for (var j = 0; j < numPlayers; j++) {
+				if (allocatedLootList[j].total === allocatedLootList[leastWorthInd].total) {
+					leastWorthArray[j] = 1;
+					count++;
+				}
+			}
+
+			var nextLeastInd = getNextLeast(allocatedLootList, leastWorthInd);
+			var diffInGoldValue = allocatedLootList[nextLeastInd].total - allocatedLootList[leastWorthInd].total;
+
+			if (diffInGoldValue === 0) {
+				allocateEvenly(amountLeft, type);
+				amountLeft = 0;
+				break;
+			}
+
+			var convertedDiff = actualValueFromGold(diffInGoldValue.toFixed(2), type);
+			if (!Number.isInteger(convertedDiff)) {
+				convertedDiff = Math.floor(convertedDiff);
+			}
+
+			if (convertedDiff === 0) {
+				amountLeft = 0;
+				break;
+			}
+
+			if (count === 1) {
+				if (amountLeft < convertedDiff) {
+					convertedDiff = amountLeft;
+				}
+				addToAlloction(leastWorthInd, type, convertedDiff);
+				amountLeft -= convertedDiff;
+			} else if (count > 1) {
+				var totalNeeded = convertedDiff * count;
+				if (totalNeeded <= amountLeft) {
+					for (var k = 0; k < numPlayers; k++) {
+						if (leastWorthArray[k] === 1) {
+							addToAlloction(k, type, convertedDiff);
+							amountLeft -= convertedDiff;
+						}
+					}
+				} else {
+					var amountGiven = Math.floor(amountLeft / count);
+					var remainder = amountLeft % count;
+					var lastIndex = 0;
+					if (amountGiven > 0) {
+						for (var l = 0; l < numPlayers; l++) {
+							if (leastWorthArray[l] === 1) {
+								addToAlloction(l, type, amountGiven);
+								lastIndex = l;
+							}
+						}
+					}
+
+					if (remainder > 0) {
+						addToAlloction(lastIndex, type, remainder);
+					}
+					amountLeft = 0;
+				}
+			}
+		}
+	}
 }
 
 
-function getLeastWorth(allocatedLootList) {
+function allocateEvenly(amountLeft, type) {
+	var amountGiven = Math.floor(amountLeft / numPlayers);
+	var remainder = amountLeft % numPlayers;
+	var currInd = 0;
+	if (amountGiven > 0) {
+		for (var i = 0; i < numPlayers; i++) {
+			addToAlloction(i, type, amountGiven);
+			currInd = i;
+		}
+	}
+
+	if (remainder > 0) {
+		var remainderGiven = 1;
+		while (remainderGiven <= remainder) {
+			addToAlloction(currInd, type, 1);
+			remainderGiven++;
+			currInd++;
+			if (currInd === numPlayers) {
+				currInd = 0;
+			}
+		}
+	}
+}
+
+
+function addToAlloction(index, type, actual) {
+	var valueInGold = getValueInGold(actual, type);
+	allocatedLootList[index].total += valueInGold;
+	allocatedLootList[index].list.push(actual.toString() + type);
+}
+
+
+function getLeastWorth(array) {
 	var min = Number.MAX_SAFE_INTEGER;
 	var index = -1;
-	
 	for (var i = 0; i < numPlayers; i++) {
-		if (allocatedLootList[i].total < min) {
-			min = allocatedLootList[i].total;
+		if (array[i].total < min) {
+			min = array[i].total;
 			index = i;
 		}
 	}
@@ -185,10 +306,44 @@ function getLeastWorth(allocatedLootList) {
 }
 
 
+function getNextLeast(array, leastWorthInd) {
+	var diff = Number.MAX_SAFE_INTEGER;
+	var index = 0;
+	for (var i = 0; i < array.length; i++) {
+		var temp = Math.abs(array[i].total - array[leastWorthInd].total);
+		if (temp < diff && temp !== 0) {
+			diff = temp;
+			index = i;
+		}
+	}
+	return index;
+}
+
+
+function getTypeFromIndex(index) {
+	switch(index) {
+		case 0:
+			return "pp";
+		case 1:
+			return " gemstones";
+		case 2:
+			return "gp";
+		case 3:
+			return "ep";
+		case 4:
+			return "sp";
+		case 5:
+			return "cp";
+	}
+}
+
+
 function getValueInGold(amt, type) {
 	switch(type) {
 		case "pp":
 			return amt * 10;
+		case " gemstones":
+			return amt;
 		case "gp":
 			return amt;
 		case "ep":
@@ -199,6 +354,24 @@ function getValueInGold(amt, type) {
 			return amt / 100;
 		default:
 			return;
+	}
+}
+
+
+function actualValueFromGold(amt, type) {
+	switch(type) {
+		case "pp":
+			return amt / 10;
+		case " gemstones":
+			return amt;
+		case "gp":
+			return amt;
+		case "ep":
+			return amt * 2;
+		case "sp":
+			return amt * 10;
+		case "cp":
+			return amt * 100;
 	}
 }
 
@@ -218,11 +391,62 @@ function shuffle(array) {
 }
 
 
-function compareIgnoreCase(a, b) {
-	return typeof a === 'string' && typeof b === 'string' ? a.localeCompare(b, undefined, {sensitivity: 'accent'}) === 0 : a === b;
+function condenseLoot() {
+	for (var i = 0; i < numPlayers; i++) {
+		var l = allocatedLootList[i].list;
+		var newList = [];
+		var prevType = null;
+		var prevItem = null;
+		for (var j = 0; j < l.length; j++) {
+			var item = l[j];
+			if ((typeof item) === "object") {
+				var itemString = item.name + item.actual;
+				var amount = item.amount;
+				if (amount === 1) {
+					newList.push(itemString);
+				} else {
+					newList.push(itemString + " x" + amount.toString());
+				}
+			} else if ((typeof item) === "string") {
+				var itemType = item.substring(item.length - 2);
+				var itemSum = parseInt(item.substring(0, item.length - 2));
+				if (prevType === itemType) {
+					newList.pop();
+					var toAdd = prevItem;
+					itemSum += toAdd;
+					item = itemSum.toString() + itemType;
+				}
+				newList.push(item);
+				prevType = itemType;
+				prevItem = itemSum;
+			}		
+		}
+		allocatedLootList[i].list = newList;
+	}
 }
 
 
-document.getElementById("split").onclick = function() {
-	lootShare();
+function showAllocatedLoot(shuffled) {
+	var ulOuter = document.getElementById("resultList");
+	for (var i = 0; i < numPlayers; i++) {
+		var playerName = playerList[i] + ":";
+		var otherArrayInd = shuffled.indexOf(i);
+		var l = allocatedLootList[otherArrayInd].list;
+		var loot = "";
+		for (var j = 0; j < l.length; j++) {
+			if (j === l.length - 1) {
+				loot += l[j];
+			} else {
+				loot += l[j] + ", ";
+			}
+		}
+	var liOuter = document.createElement("li");
+	liOuter.appendChild(document.createTextNode(playerName));
+	var ulInner = document.createElement("ul");
+	var liInner = document.createElement("li");
+	liInner.appendChild(document.createTextNode(loot));
+	ulInner.appendChild(liInner);
+	liOuter.appendChild(ulInner);
+	ulOuter.appendChild(liOuter);
+	}
 }

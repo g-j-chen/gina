@@ -8,7 +8,6 @@ body {
 	width: 1600px;
 	margin-left: auto;
 	margin-right: auto;
-
 }
 
 #header {
@@ -21,7 +20,7 @@ h1, h3 {
 }
 
 #content {
-	padding: 10px;
+	padding: 10px 10px 10px 20px;
 	height: 200px;
 	display: table-cell;
 	vertical-align: top;
@@ -34,10 +33,6 @@ h1, h3 {
 	padding-left: 10px;
 }
 
-#players ul {
-	list-style-type: none;
-	padding: 0;
-}
 
 #loot {
 	width: 760px;
@@ -48,7 +43,7 @@ h1, h3 {
 
 #results {
 	clear: both;
-	padding: 10px;
+	padding: 10px 10px 10px 30px;
 	height: 500px;
 }
 
@@ -64,7 +59,7 @@ h1, h3 {
 }
 
 .splitHolder {
-	padding: 20px;
+	padding: 10px 10px 10px 30px;
 }
 
 .content .splitHolder {
