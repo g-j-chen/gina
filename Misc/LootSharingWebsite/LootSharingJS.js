@@ -4,12 +4,18 @@ var playerList;
 var lootList;
 var numPlayers;
 var allocatedLootList = [];
+var prevStorage = false;
+var inputKeys;
+var inputTally;
+
 
 document.getElementById("playerClear").onclick = function() {
 	document.getElementById("playerNames").value = "";
 	playerString = "";
 	playerList = [];
 	allocatedLootList = [];
+	var ul = document.getElementById("resultList");
+	ul.parentNode.removeChild(ul);
 }
 
 
@@ -18,12 +24,37 @@ document.getElementById("lootClear").onclick = function() {
 	lootString = "";
 	lootList = [];
 	allocatedLootList = [];
+	var ul = document.getElementById("resultList");
+	ul.parentNode.removeChild(ul);
 }
 
 document.getElementById("split").onclick = function() {
 	if (document.getElementById("resultList").getElementsByTagName("li").length === 0) {
 		lootShare();
 	}
+}
+
+
+window.onload = function() {
+	if (localStorage.length !== 0) {
+		inputTally = JSON.parse(localStorage.getItem("tally"));
+		console.log(inputTally);
+		inputKeys = Object.keys(inputTally);
+		var playersData = inputKeys.toString();
+		document.getElementById("playerNames").value = playersData;
+	}
+}
+
+
+function compare_arrays(array1, array2) {
+	array1.sort();
+	array2.sort();
+	for (var i = 0; i < array1.length; i++) {
+		if (array1[i] !== array2[i]) {
+			return false;
+		}
+	}
+	return true;
 }
 
 
@@ -38,6 +69,9 @@ function lootShare() {
 			playerList[i] = playerList[i].trim();
 		}
 	}
+	if (inputKeys && inputKeys.length === playerList.length) {
+		prevStorage = compare_arrays(inputKeys, playerList);
+	}
 	// Test: 8gp 5sp, 100gp gems x5, gold ring with black flying snake symbol 25gp, 4pp 13gp, 35gp, 12gp 55sp 87cp, silver salt and pepper shakers set 25gp, holy symbol of sylvanus 25gp, 12sp
 	lootString = document.getElementById("lootNames").value;
 	if (lootString === "") {
@@ -49,33 +83,25 @@ function lootShare() {
 		}
 	}
 
-	console.log("player list: " + playerList);
-	console.log("loot list: " + lootList);
-
-	var shuffledPlayers = shuffle(Array.from(Array(numPlayers).keys()));
-
 	var separatedLootList = separateLoot(lootList);
 	var goldAndGemstones = separatedLootList[0];
 	var sortedLootItems = separatedLootList[1].sort((a, b) => (b.value - a.value));
 
-	console.log("gold and gemstones:");
-	console.log(goldAndGemstones);
-	console.log("sorted loot items:");
-	console.log(sortedLootItems);
-
 	for (var i = 0; i < numPlayers; i++) {
-		var v = [];
-		const c = {total: 0, list: v};
+		let v = [];
+		let t = 0;
+		if (prevStorage) {
+			t = inputTally[inputKeys[i]];
+		}
+		const c = {total: t, list: v};
 		allocatedLootList.push(c);
 	}
-
-	allocateLoot(sortedLootItems);
-	console.log(allocatedLootList);
-	allocateGoldAndGemstones(goldAndGemstones);
 	
+	allocateLoot(sortedLootItems);
+	allocateGoldAndGemstones(goldAndGemstones);
 	condenseLoot();
-	console.log(allocatedLootList);
-	showAllocatedLoot(shuffledPlayers);
+	showAllocatedLoot();
+	localStorage.setItem("tally", JSON.stringify(inputTally));
 }
 
 
@@ -426,12 +452,19 @@ function condenseLoot() {
 }
 
 
-function showAllocatedLoot(shuffled) {
+function showAllocatedLoot() {
 	var ulOuter = document.getElementById("resultList");
+	if (!prevStorage) {
+		var shuffledPlayers = shuffle(Array.from(Array(numPlayers).keys()));
+		inputTally = {};
+	}
+
 	for (var i = 0; i < numPlayers; i++) {
-		var playerName = playerList[i] + ":";
-		var otherArrayInd = shuffled.indexOf(i);
-		var l = allocatedLootList[otherArrayInd].list;
+		var index = i;
+		if (!prevStorage) {
+			index = shuffledPlayers.indexOf(i);
+		}
+		var l = allocatedLootList[index].list;
 		var loot = "";
 		for (var j = 0; j < l.length; j++) {
 			if (j === l.length - 1) {
@@ -440,13 +473,19 @@ function showAllocatedLoot(shuffled) {
 				loot += l[j] + ", ";
 			}
 		}
-	var liOuter = document.createElement("li");
-	liOuter.appendChild(document.createTextNode(playerName));
-	var ulInner = document.createElement("ul");
-	var liInner = document.createElement("li");
-	liInner.appendChild(document.createTextNode(loot));
-	ulInner.appendChild(liInner);
-	liOuter.appendChild(ulInner);
-	ulOuter.appendChild(liOuter);
+		if (loot === "") {
+			loot = "\u2639";
+		}
+			
+		inputTally[playerList[i]] = allocatedLootList[index].total;
+		
+		var liOuter = document.createElement("li");
+		liOuter.appendChild(document.createTextNode(playerList[i] + ":"));
+		var ulInner = document.createElement("ul");
+		var liInner = document.createElement("li");
+		liInner.appendChild(document.createTextNode(loot));
+		ulInner.appendChild(liInner);
+		liOuter.appendChild(ulInner);
+		ulOuter.appendChild(liOuter);
 	}
 }
