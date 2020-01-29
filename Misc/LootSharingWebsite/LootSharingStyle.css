@@ -21,7 +21,7 @@ h1, h3 {
 
 #content {
 	padding: 10px 10px 10px 20px;
-	height: 200px;
+	height: 140px;
 	display: table-cell;
 	vertical-align: top;
 }
@@ -41,10 +41,11 @@ h1, h3 {
 	padding-left: 10px;
 }
 
-#results {
+#splits {
 	clear: both;
-	padding: 10px 10px 10px 30px;
-	height: 500px;
+	width: inherit;
+	min-height: 525px;
+	align-items: center;
 }
 
 #playerNames, #lootNames {
@@ -54,12 +55,12 @@ h1, h3 {
 	overflow-y: scroll;
 }
 
-.playerButtonGroup button, .lootButtonGroup button, .splitHolder button {
+.splitHolder button {
 	cursor: pointer;
 }
 
 .splitHolder {
-	padding: 10px 10px 10px 30px;
+	padding: 0px 10px 10px 30px;
 }
 
 .content .splitHolder {

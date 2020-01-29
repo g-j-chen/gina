@@ -4,57 +4,29 @@ var playerList;
 var lootList;
 var numPlayers;
 var allocatedLootList = [];
-var prevStorage = false;
-var inputKeys;
-var inputTally;
+var listForStorage = [];
 
-
-document.getElementById("playerClear").onclick = function() {
-	document.getElementById("playerNames").value = "";
-	playerString = "";
-	playerList = [];
-	allocatedLootList = [];
-	var ul = document.getElementById("resultList");
-	ul.parentNode.removeChild(ul);
-}
-
-
-document.getElementById("lootClear").onclick = function() {
-	document.getElementById("lootNames").value = "";
-	lootString = "";
-	lootList = [];
-	allocatedLootList = [];
-	var ul = document.getElementById("resultList");
-	ul.parentNode.removeChild(ul);
-}
 
 document.getElementById("split").onclick = function() {
-	if (document.getElementById("resultList").getElementsByTagName("li").length === 0) {
-		lootShare();
-	}
+	lootShare();
+	allocatedLootList = [];
+	lootList = [];
 }
 
 
 window.onload = function() {
-	if (localStorage.length !== 0) {
-		inputTally = JSON.parse(localStorage.getItem("tally"));
-		console.log(inputTally);
-		inputKeys = Object.keys(inputTally);
-		var playersData = inputKeys.toString();
-		document.getElementById("playerNames").value = playersData;
-	}
-}
+	var prevTally = JSON.parse(localStorage.getItem("tally"));
 
+	if (prevTally !== null) {
+		showAllSplits(prevTally);
 
-function compare_arrays(array1, array2) {
-	array1.sort();
-	array2.sort();
-	for (var i = 0; i < array1.length; i++) {
-		if (array1[i] !== array2[i]) {
-			return false;
+		var mostRecentTally = prevTally[0];
+		var prevNames = []
+		for (var i = 0; i < mostRecentTally.length; i++) {
+			prevNames.push(mostRecentTally[i].player_name);
 		}
+		document.getElementById("playerNames").value = prevNames.join(", ");
 	}
-	return true;
 }
 
 
@@ -69,9 +41,7 @@ function lootShare() {
 			playerList[i] = playerList[i].trim();
 		}
 	}
-	if (inputKeys && inputKeys.length === playerList.length) {
-		prevStorage = compare_arrays(inputKeys, playerList);
-	}
+
 	// Test: 8gp 5sp, 100gp gems x5, gold ring with black flying snake symbol 25gp, 4pp 13gp, 35gp, 12gp 55sp 87cp, silver salt and pepper shakers set 25gp, holy symbol of sylvanus 25gp, 12sp
 	lootString = document.getElementById("lootNames").value;
 	if (lootString === "") {
@@ -89,19 +59,14 @@ function lootShare() {
 
 	for (var i = 0; i < numPlayers; i++) {
 		let v = [];
-		let t = 0;
-		if (prevStorage) {
-			t = inputTally[inputKeys[i]];
-		}
-		const c = {total: t, list: v};
+		var c = {total: 0, list: v};
 		allocatedLootList.push(c);
 	}
 	
 	allocateLoot(sortedLootItems);
 	allocateGoldAndGemstones(goldAndGemstones);
 	condenseLoot();
-	showAllocatedLoot();
-	localStorage.setItem("tally", JSON.stringify(inputTally));
+	assignLootToPlayers();
 }
 
 
@@ -174,12 +139,12 @@ function separateLoot(array) {
 					quantity = parseInt(s.replace(/[^0-9]/g, ""), 10);
 				}
 			}
-			var itemTuple = {name: lootItem, value: valueInGold, actual: temp.toString() + type, amount: 1};
+			var itemTuple = {name: lootItem + temp.toString() + type, value: valueInGold, amount: 1};
 			if (quantity === 1) {
 				lootItemArray.push(itemTuple);
 			} else {
-				for (var n = 1; n <= quantity; n++) {
-					var newItemTuple = {name: lootItem, value: valueInGold, actual: temp.toString() + type, amount: 1};
+				for (var n = 0; n < quantity; n++) {
+					var newItemTuple = {name: lootItem + temp.toString() + type, value: valueInGold, amount: 1};
 					lootItemArray.push(newItemTuple);
 				}
 			}
@@ -312,10 +277,10 @@ function allocateEvenly(amountLeft, type) {
 }
 
 
-function addToAlloction(index, type, actual) {
-	var valueInGold = getValueInGold(actual, type);
+function addToAlloction(index, type, amount) {
+	var valueInGold = getValueInGold(amount, type);
 	allocatedLootList[index].total += valueInGold;
-	allocatedLootList[index].list.push(actual.toString() + type);
+	allocatedLootList[index].list.push(amount.toString() + type);
 }
 
 
@@ -420,72 +385,153 @@ function shuffle(array) {
 function condenseLoot() {
 	for (var i = 0; i < numPlayers; i++) {
 		var l = allocatedLootList[i].list;
-		var newList = [];
 		var prevType = null;
-		var prevItem = null;
+		var prevSum = null;
+		var lootStorage = [];
 		for (var j = 0; j < l.length; j++) {
 			var item = l[j];
 			if ((typeof item) === "object") {
-				var itemString = item.name + item.actual;
-				var amount = item.amount;
-				if (amount === 1) {
-					newList.push(itemString);
-				} else {
-					newList.push(itemString + " x" + amount.toString());
-				}
+				lootStorage.push({name: item.name, value: item.value, amount: item.amount});
 			} else if ((typeof item) === "string") {
 				var itemType = item.substring(item.length - 2);
 				var itemSum = parseInt(item.substring(0, item.length - 2));
+				var itemValue = getValueInGold(itemSum, itemType);
 				if (prevType === itemType) {
-					newList.pop();
-					var toAdd = prevItem;
-					itemSum += toAdd;
+					var prev = lootStorage.pop();
+					itemValue += prev.value;
+					itemSum += prevSum;
 					item = itemSum.toString() + itemType;
 				}
-				newList.push(item);
+				lootStorage.push({name: item, value: itemValue, amount: 1});
 				prevType = itemType;
-				prevItem = itemSum;
-			}		
+				prevSum = itemSum;
+			}
 		}
-		allocatedLootList[i].list = newList;
+		listForStorage[i] = lootStorage;
 	}
 }
 
 
-function showAllocatedLoot() {
-	var ulOuter = document.getElementById("resultList");
-	if (!prevStorage) {
-		var shuffledPlayers = shuffle(Array.from(Array(numPlayers).keys()));
-		inputTally = {};
-	}
+function assignLootToPlayers() {
+	var shuffledPlayers = shuffle(Array.from(Array(numPlayers).keys()));
+	var inputTally = [];
 
 	for (var i = 0; i < numPlayers; i++) {
-		var index = i;
-		if (!prevStorage) {
-			index = shuffledPlayers.indexOf(i);
+		var index = shuffledPlayers.indexOf(i);
+		inputTally.push({player_name: playerList[i], loot: listForStorage[index]});
+	}
+	var prevTally = JSON.parse(localStorage.getItem("tally"));
+	if (prevTally === null) {
+		prevTally = [];
+		prevTally.push(inputTally);
+	} else {
+		prevTally.splice(0, 0, inputTally);
+	}
+	localStorage.setItem("tally", JSON.stringify(prevTally));
+	showAllSplits(prevTally);
+}
+
+
+function showAllSplits(prevTally) {
+	var splits = document.getElementById("splits");
+	splits.innerHTML = "";
+	for (var i = prevTally.length - 1; i >= 0; i--) {
+		formatSingleSplit(prevTally[i]);
+		let theFirstChild = splits.firstChild;
+		splits.insertBefore(document.createElement("br"), theFirstChild);
+	}
+}
+
+
+function formatSingleSplit(splitArr) {
+	//create div to hold and display all player's loot, formatted
+	var currentSplit = document.createElement("div");
+	currentSplit.style.border = "thick solid #C6CED2";
+	currentSplit.style.backgroundColor = "#C6CED2";
+	currentSplit.style.borderRadius = "10px";
+	currentSplit.style.overflow = "hidden";
+	currentSplit.style.width = "70%";
+	currentSplit.style.margin = "auto";
+	//document.getElementById("splits").appendChild(currentSplit);
+	var splits = document.getElementById("splits");
+	let theFirstChild = splits.firstChild;
+	splits.insertBefore(currentSplit, theFirstChild);
+	
+	for (var i = 0; i < splitArr.length; i++) {
+		var playerName = splitArr[i].player_name;
+		var lootArr = splitArr[i].loot;
+
+		//create div to wrap everything in, formatted
+		var playerDiv = document.createElement("div");
+		playerDiv.style.marginTop = "10px";
+		playerDiv.style.width = "auto";
+		playerDiv.style.overflow = "hidden";
+		//playerDiv.style.border = "thin solid #B3B3FF"
+		playerDiv.style.borderRadius = "10px";
+		currentSplit.appendChild(playerDiv);
+		//playerDiv.style.backgroundColor = "#FFFF66"; //use when need to see where div is...
+
+		//inserting <hr /> between each playerDiv
+		if (i < splitArr.length - 1) {
+			var lineBreak = document.createElement("HR");
+			currentSplit.appendChild(lineBreak);
+			lineBreak.style.width = "90%";
 		}
-		var l = allocatedLootList[index].list;
-		var loot = "";
-		for (var j = 0; j < l.length; j++) {
-			if (j === l.length - 1) {
-				loot += l[j];
-			} else {
-				loot += l[j] + ", ";
+
+		//create div to hold both name and net worth, floats on left, formatted
+		var playerNameNetWorthDiv = document.createElement("div");
+		playerNameNetWorthDiv.style.cssFloat = "left";
+		playerNameNetWorthDiv.style.width = "30%";
+		playerNameNetWorthDiv.style.textAlign = "center";
+		playerNameNetWorthDiv.style.minHeight = "80px";
+		//playerNameNetWorthDiv.style.backgroundColor = "#33CCFF"; //use when need to see where div is...
+		playerDiv.appendChild(playerNameNetWorthDiv);
+
+		//create div for name
+		var nameEl = document.createElement("div");
+		nameEl.style.fontSize = "large";
+		nameEl.style.fontWeight = "bold";
+		nameEl.appendChild(document.createTextNode(playerName));
+		//adding name element
+		playerNameNetWorthDiv.appendChild(nameEl);
+		//creating and adding div under name element to hold net worth
+		playerNameNetWorthDiv.appendChild(document.createTextNode("Amount in gp: " + getNetWorth(lootArr)));
+
+		//create div to show loot as an <ul>
+		var lootDiv = document.createElement("div");
+		var lootDivList = document.createElement("ul");
+		lootDivList.style.marginTop = "0";
+		lootDivList.style.marginBottom = "0";
+		lootDiv.style.cssFloat = "right";
+		lootDiv.style.width = "70%";
+		lootDiv.appendChild(lootDivList);
+		playerDiv.appendChild(lootDiv);
+		//lootDiv.style.backgroundColor = "#99FF99"; //use when need to see where div is	
+
+		//processing loot to output as list in lootDiv
+		if (lootArr.length === 0) {
+			var li = document.createElement("li");
+			li.appendChild(document.createTextNode("\u2639"));
+			lootDivList.appendChild(li);
+		} else {
+			for (var j = 0; j < lootArr.length; j++) {
+				var lootItemString = lootArr[j].name;
+				if (lootArr[j].amount > 1) {
+					lootItemString += " x" + lootArr[j].amount;
+				}
+				var li = document.createElement("li");
+				li.appendChild(document.createTextNode(lootItemString));
+				lootDivList.appendChild(li);
 			}
 		}
-		if (loot === "") {
-			loot = "\u2639";
-		}
-			
-		inputTally[playerList[i]] = allocatedLootList[index].total;
-		
-		var liOuter = document.createElement("li");
-		liOuter.appendChild(document.createTextNode(playerList[i] + ":"));
-		var ulInner = document.createElement("ul");
-		var liInner = document.createElement("li");
-		liInner.appendChild(document.createTextNode(loot));
-		ulInner.appendChild(liInner);
-		liOuter.appendChild(ulInner);
-		ulOuter.appendChild(liOuter);
 	}
+}
+
+
+function getNetWorth(lootArr) {
+	var netWorth = 0;
+	for (var i = 0; i < lootArr.length; i++) {
+		netWorth += lootArr[i].value;
+	}
+	return netWorth;
 }
