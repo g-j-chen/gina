@@ -1,0 +1,141 @@
+body {
+	background-color: #AEB6BF;
+	font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+}
+
+#container {
+	background-color: #D6DBDF;
+	width: 1600px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#header {
+	text-align: center;
+	padding: 10px;
+}
+
+h1, h3 {
+	margin: 0;
+}
+
+#content {
+	padding: 10px 10px 10px 20px;
+	height: 140px;
+	display: table-cell;
+	vertical-align: top;
+}
+
+#players {
+	width: 760px;
+	float: left;
+	padding-right: 10px;
+	padding-left: 10px;
+	position: relative;
+}
+
+
+#loot {
+	width: 760px;
+	float: right;
+	padding-right: 10px;
+	padding-left: 10px;
+	position: relative;
+}
+
+#splits {
+	clear: both;
+	width: inherit;
+	min-height: 525px;
+	align-items: center;
+	padding-bottom: 20px;
+}
+
+#playerNames, #lootNames {
+	font-size: 14px;
+	font-weight: normal;
+	resize: none;
+	overflow-y: scroll;
+}
+
+.splitHolder button {
+	cursor: pointer;
+}
+
+.splitHolder {
+	padding: 0px 10px 10px 30px;
+}
+
+.content .splitHolder {
+	position: absolute;
+	bottom: 0;
+}
+
+.help-tip {
+	position: absolute;
+	top: 18px;
+	right: 18px;
+	text-align: center;
+	background-color: #809FFF;
+	border-radius: 50%;
+	width: 25px;
+	height: 25px;
+	font-size: 14px;
+	line-height: 26px;
+}
+
+.help-tip::before {
+	content: '?';
+	font-weight: bold;
+	color: #FFF;
+}
+
+.help-tip:hover p{
+	display: block;
+	transform-origin: 100% 0%;
+	-webkit-animation: fadeIn 0.3s ease-in-out;
+	animation: fadeIn 0.3s ease-in-out;
+}
+
+.help-tip p{
+	display: none;
+	text-align: left;
+	background-color: #1E2021;
+	padding: 20px;
+	width: 250px;
+	position: absolute;
+	border-radius: 3px;
+	right: -4px;
+	color: #FFF;
+	font-size: 13px;
+	line-height: 1.4;
+}
+
+.help-tip p::before{
+    position: absolute;
+    content: '';
+    width:0;
+    height: 0;
+    border:6px solid transparent;
+    border-bottom-color:#1E2021;
+    right:10px;
+    top:-12px;
+}
+
+
+@-webkit-keyframes fadeIn {
+    0% { 
+        opacity:0; 
+        transform: scale(0.6);
+    }
+
+    100% {
+        opacity:100%;
+        transform: scale(1);
+    }
+}
+
+@keyframes fadeIn {
+    0% { opacity:0; }
+    100% { opacity:100%; }
+}
