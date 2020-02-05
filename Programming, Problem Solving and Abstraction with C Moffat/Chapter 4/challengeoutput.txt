@@ -1,0 +1,4 @@
+ text 
+a slash can appear / and might / or might // not //
+and an */ can also appear anywhere outside
+a comment **//*/ mean?
