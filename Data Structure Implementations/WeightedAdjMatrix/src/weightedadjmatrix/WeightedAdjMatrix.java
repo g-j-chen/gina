@@ -5,49 +5,153 @@
  */
 package weightedadjmatrix;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 
 /**
  *
  * @author ginaj
  */
 public class WeightedAdjMatrix {
-    private int[][] matrix;
+    private ArrayList<ArrayList<Integer>> matrix;
     private boolean directed;
     private int numVertices;
     
     public WeightedAdjMatrix(int numVertices, boolean directed) {
         this.numVertices = numVertices;
         this.directed = directed;
-        this.matrix = new int[numVertices][numVertices];
-        for (int[] row : this.matrix) {
-            Arrays.fill(row, -1); //initialising matrix with -1 as all values;
+        this.matrix = new ArrayList<>();
+        for (int i = 0; i < numVertices; i++) {
+            ArrayList<Integer> list = new ArrayList<>();
+            for (int j = 0; j < numVertices; j++) {
+                list.add(-1);
+            }
+            this.matrix.add(list);
         }
     }
     
+    private boolean validIndex(int index) {
+        return index >= 0 && index < this.numVertices;
+    }
+    
+    private boolean sameVertex(int v1, int v2) {
+        return v1 == v2;
+    }
+    
     public void addEdge(int v1, int v2, int w) {
-        this.matrix[v1][v2] = w;
+        if (sameVertex(v1, v2)) {
+            System.out.println("Same index");
+            return;
+        }
+        if (!validIndex(v1) || !validIndex(v2)) {
+            System.out.println("Invalid index");
+            return;
+        }
+        this.matrix.get(v1).set(v2, w);
         if (!this.directed) {
-            this.matrix[v2][v1] = w;
+            this.matrix.get(v2).set(v1, w);
         }
     }
     
     public void removeEdge(int v1, int v2) {
-        this.matrix[v1][v2] = -1;
+        if (sameVertex(v1, v2)) {
+            System.out.println("Same index");
+            return;
+        }
+        if (!validIndex(v1) || !validIndex(v2)) {
+            System.out.println("Invalid index");
+            return;
+        }
+        this.matrix.get(v1).set(v2, -1);
         if (!this.directed) {
-            this.matrix[v2][v1] = -1;
+            this.matrix.get(v2).set(v1, -1);
         }
     }
     
     public boolean hasEdge(int v1, int v2) {
-        return this.matrix[v1][v2] != -1;
+        if (sameVertex(v1, v2)) {
+            System.out.println("Same index");
+            return false;
+        }
+        if (!validIndex(v1) || !validIndex(v2)) {
+            System.out.println("Invalid index");
+            return false;
+        }
+        return !(this.matrix.get(v1).get(v2).equals(-1));
+    }
+    
+    public void addVertex(int v1, int w) { //connection is from newly added vertex to v1 (if undirected, also adds back connection
+        if (!validIndex(v1) || v1 == this.numVertices) {
+            System.out.println("Invalid index");
+            return;
+        }
+        ArrayList<Integer> newList = new ArrayList<>();
+        for (int i = 0; i < this.numVertices; i++) {
+            if (i == v1) {
+                newList.add(w);
+            } else {
+                newList.add(-1);
+            }
+            ArrayList<Integer> list = this.matrix.get(i);
+            if (!this.directed && i == v1) {
+                list.add(w);
+            } else {
+                list.add(-1);
+            }
+        }
+        newList.add(-1);
+        this.matrix.add(newList);
+        this.numVertices++;
+    }
+    
+    public void insertVertex(int index, int v1, int w) { //connection is from newly added vertex to v1 (if undirected, also adds back connection
+        if (index == this.numVertices) {
+            addVertex(v1, w);
+            return;
+        }
+        if (!validIndex(index)) {
+            System.out.println("Invalid index");
+            return;
+        }
+        if (sameVertex(v1, index)) {
+            System.out.println("Same index");
+            return;
+        }
+        ArrayList<Integer> newList = new ArrayList<>();
+        for (int i = 0; i < this.numVertices; i++) {
+            if (i == v1) {
+                newList.add(w);
+            } else {
+                newList.add(-1);
+            }
+            ArrayList<Integer> list = this.matrix.get(i);
+            if (!this.directed && i == v1) {
+                list.add(index, w);
+            } else {
+                list.add(index, -1);
+            }
+        }
+        newList.add(-1);
+        this.matrix.add(index, newList);
+        this.numVertices++;
+    }
+    
+    public void removeVertex(int v) {
+        if (!validIndex(v)) {
+            System.out.println("Invalid index");
+            return;
+        }
+        for (int i = 0; i < this.numVertices; i++) {
+            this.matrix.get(i).remove(v);
+        }
+        this.matrix.remove(v);
+        this.numVertices--;
     }
     
     public void printMatrix() {
         System.out.println("Weighted Adjacency matrix:");
         for (int i = 0; i < this.numVertices; i++) {
             for (int j = 0; j < this.numVertices; j++) {
-                System.out.print(this.matrix[i][j]);
+                System.out.print(this.matrix.get(i).get(j));
                 System.out.print("\t");
             }
             System.out.println();
@@ -73,6 +177,17 @@ public class WeightedAdjMatrix {
         System.out.println("Removing edge between 1 and 3");
         graph.removeEdge(1, 3);
         graph.printMatrix();
+        System.out.println();
+        
+        System.out.println("Inserting vertex at index 4");
+        graph.insertVertex(4, 0, 5);
+        graph.printMatrix();
+        System.out.println();
+        
+        System.out.println("Removing vertex 3");
+        graph.removeVertex(3);
+        graph.printMatrix();
+        System.out.println();
         
         
         System.out.println("Directed graph:");
@@ -90,7 +205,11 @@ public class WeightedAdjMatrix {
         System.out.println("Removing edge from 1 to 4");
         directed.removeEdge(1, 4);
         directed.printMatrix();
-
+        System.out.println();
+        
+        System.out.println("Adding vertex with connection to 0");
+        directed.addVertex(0, 9);
+        directed.printMatrix();
     }
     
 }
