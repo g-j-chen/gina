@@ -177,7 +177,7 @@ public class AdjacencyMatrix {
         
         graph.addVertex(5);
         graph.printMatrix();
-        
+
         /*
         System.out.println("Testing if it breaks when checking an edge between vertex 1 and 5 (5 is out of bounds)");
         graph.hasEdge(1, 5);

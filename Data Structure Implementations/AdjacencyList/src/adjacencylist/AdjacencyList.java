@@ -7,6 +7,7 @@ package adjacencylist;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  *
@@ -125,6 +126,43 @@ public class AdjacencyList {
             }
         }
     }
+    
+    public void DFS(int v) {
+        boolean[] visited = new boolean[this.numVertices];
+        DFSrecursive(v, visited);
+    }
+    
+    private void DFSrecursive(int v, boolean[] visited) {
+        visited[v] = true;
+        System.out.println("Visited: " + v);
+        
+        LinkedList<Integer> list = this.adjList.get(v);
+        for (Integer i : list) {
+            int next = i;
+            if (!visited[next]) {
+                DFSrecursive(next, visited);
+            }
+        }
+    }
+    
+    public void BFS(int v) {
+        boolean[] visited = new boolean[this.numVertices];
+        Queue<Integer> queue = new LinkedList<>();
+        visited[v] = true;
+        queue.add(v);
+        
+        while(!queue.isEmpty()) {
+            int n = queue.poll();
+            System.out.println("Visited: " + n);
+            LinkedList<Integer> list = this.adjList.get(n);
+            for (Integer i : list) {
+                if (!visited[i]) {
+                    queue.add(i);
+                    visited[i] = true;
+                }
+            }
+        }
+    }
     /**
      * @param args the command line arguments
      */
@@ -138,10 +176,14 @@ public class AdjacencyList {
         list.addEdge(1, 4);
         list.addEdge(2, 3);
         list.addEdge(3, 4);
+        list.addVertex(0);
+        list.addVertex(5);
         list.printList();
-        System.out.println("This list has edge between 1 and 3: " + list.hasEdge(1, 3));
+        //System.out.println("This list has edge between 1 and 3: " + list.hasEdge(1, 3));
         System.out.println();
+        list.BFS(0);
         
+        /*
         System.out.println("Adding vertex");
         list.addVertex(2);
         list.printList();
@@ -175,6 +217,7 @@ public class AdjacencyList {
         directed.removeEdge(1, 4);
         directed.printList();
         System.out.println("This list has edge between 1 and 4: " + directed.hasEdge(1, 4));
+*/
     }
     
 }
