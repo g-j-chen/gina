@@ -5,6 +5,8 @@
  */
 package adjacencymatrix;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 
 
 /**
@@ -147,6 +149,47 @@ public class AdjacencyMatrix {
         this.numVertices--;
     }
     
+    public void DFS(int v) {
+        boolean[] visited = new boolean[this.numVertices];
+        DFSrecursive(v, visited);
+    }
+    
+    private void DFSrecursive(int v, boolean[] visited) {
+        visited[v] = true;
+        System.out.println("Visited: " + v);
+        
+        ArrayList<Integer> list = this.matrix.get(v);
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i) == 1) {
+                int next = i;
+                if (!visited[next]) {
+                    DFSrecursive(next, visited);
+                }
+            }
+        }
+    }
+    
+    public void BFS(int v) {
+        boolean[] visited = new boolean[this.numVertices];
+        Queue<Integer> queue = new LinkedList<>();
+        visited[v] = true;
+        queue.add(v);
+        
+        while(!queue.isEmpty()) {
+            int n = queue.poll();
+            System.out.println("Visited: " + n);
+            ArrayList<Integer> list = this.matrix.get(n);
+            for (int i = 0; i < list.size(); i++) {
+                if (list.get(i) == 1) {
+                    if (!visited[i]) {
+                        queue.add(i);
+                        visited[i] = true;
+                    }
+                }
+            }
+        }
+    }
+    
     public void printMatrix() {
         System.out.println("Adjacency matrix:");
         for (int i = 0; i < this.numVertices; i++) {
@@ -174,10 +217,9 @@ public class AdjacencyMatrix {
         graph.addEdge(3, 4);
         graph.printMatrix();
         System.out.println();
-        
-        graph.addVertex(5);
-        graph.printMatrix();
 
+        System.out.println();
+        graph.BFS(0);
         /*
         System.out.println("Testing if it breaks when checking an edge between vertex 1 and 5 (5 is out of bounds)");
         graph.hasEdge(1, 5);
