@@ -9,6 +9,7 @@ int main(int argc, char **argv) {
     int A[] = {5, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     int b = all_zero(A, n);
     printf("%s", b ? "true" : "false");
+    return 0;
 }
 
 int all_zero(int A[], int n) {
