@@ -194,8 +194,8 @@ public class AVLTree {
         temp.parent = node.parent;
         
         node.leftChild = temp.rightChild;
-        if(node.rightChild != null) {
-            node.rightChild.parent = node;
+        if(node.leftChild != null) {
+            node.leftChild.parent = node;
         }
         
         temp.rightChild = node;
@@ -219,8 +219,8 @@ public class AVLTree {
         temp.parent = node.parent;
         
         node.rightChild = temp.leftChild;
-        if(node.leftChild != null) {
-            node.leftChild.parent = node;
+        if(node.rightChild != null) {
+            node.rightChild.parent = node;
         }
         
         temp.leftChild = node;
