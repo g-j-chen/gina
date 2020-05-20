@@ -15,13 +15,16 @@ for tc in range(1, t + 1):
             stack[a] = s
         sumPlates.append(stack)
     
-    dp = [[0 for i in range(p + 1)] for j in range(n + 1)]
+    dp = [[0 for i in range(p + 1)]]
 
     for i in range(1, n + 1):
-        for j in range(1, p + 1):
+        new = []
+        for j in range(p + 1):
+            new.append(0)
             for x in range(min(j, k) + 1):
-                dp[i][j] = max(dp[i][j], sumPlates[i][x] + dp[i - 1][j - x])
-        
+                new[j] = max(new[j], sumPlates[i][x] + dp[i - 1][j - x])
+        dp.append(new)
+
     print("Case #" + str(tc) + ": " + str(dp[n][p]))
 
 
