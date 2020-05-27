@@ -1,4 +1,5 @@
 import statistics
+from tabulate import tabulate
 
 def getNextTuple(b):
     s = []
@@ -16,54 +17,72 @@ def getNextTuple(b):
 def lengthToCycle(b, p):
     n = int(b, 2)
     if bin(n).count("1") == 2:
-        print(n, "is already in a cycle - exiting");
         return
 
-    print("Starting interations")
     numSeen = {n: 0}
     i = 1
+    num = b
     length = 0
     period = 0
-    print(b)
+    toZero = 0
     while n != 0:
         b = getNextTuple(b.zfill(p))
-        print(b)
+        toZero+=1
         n = int(b, 2)
         if n in numSeen:
             start = numSeen.get(n)
             period = i - start
             length = start
-            print("period of cycle is", period)
-            print("length to start of cycle is", length)
             break
         else:
             numSeen[n] = i
         i+=1
-    return length, period
+    if n == 0:
+        return [num, 0, 0, toZero]
+    return [num, length, period, 0]
 
 def main():
-    print("Enter the maximum length of tuples desired:")
-    m = int(input())
-    lenArr = []
-    periodArr = []
-    for p in range(3, m + 1):
+    print("Enter the length range (inclusive) of desired tuples:")
+    s, m = map(int, input().split(" "))
+    f = open("DucciData.txt", "w+")
+    for p in range(s, m + 1):
+        tableOutput = []
+        meanVarOutput = []
         lenValues = []
         periodValues = []
+        vanish = []
+        inCycleCount = 0
         for n in range(1, 2 ** p):
             b = "{0:b}".format(n).zfill(p)
-            info = lengthToCycle(b, p)
-            print(info)
-            if info != None:
-                lenValues.append(info[0])
-                periodValues.append(info[1])
-        print("        Mean     Variance")
-        print("Length:", statistics.mean(lenValues), "     ", statistics.variance(lenValues))
-        print("Period:", statistics.mean(periodValues), "     ", statistics.variance(periodValues))
-        lenArr.append(lenValues)
-        periodArr.append(periodValues)
+            res = lengthToCycle(b, p)
+            if res != None:
+                tableOutput.append(res)
+                if res[1] != 0 and res[2] != 0:
+                    lenValues.append(res[1])
+                    periodValues.append(res[2])
+                elif res[3] != 0:
+                    vanish.append(res[3])
+            else:
+                inCycleCount+=1
 
-    print("length array:", lenArr)
-    print("period array:", periodArr)
+        f.write("Tuple length: " + str(p) + "\n")
+        f.write(str(inCycleCount) + " tuples already in a cycle\n")
+        headers = ["Tuple", "Length to cycle", "Period", "Iterations to vanish"]
+        f.write(tabulate(tableOutput, headers, tablefmt="pretty") + "\n")
+
+        headers = ["      ", "Mean", "Variance"]
+        lenMean = statistics.mean(lenValues) if len(lenValues) > 0 else 0
+        lenVar = statistics.variance(lenValues) if len(lenValues) > 1 else 0
+        periodMean = statistics.mean(periodValues) if len(periodValues) > 0 else 0
+        periodVar = statistics.variance(periodValues) if len(periodValues) > 1 else 0
+        vanishMean = statistics.mean(vanish) if len(vanish) > 0 else 0
+        vanishVar = statistics.variance(vanish) if len(vanish) > 1 else 0
+        f.write(tabulate([["Length", lenMean, lenVar],
+                        ["Period", periodMean, periodVar],
+                        ["Vanish", vanishMean, vanishVar]],
+                       headers, tablefmt="pretty") + "\n\n")
+        
+
 
     
 if __name__ == "__main__":
